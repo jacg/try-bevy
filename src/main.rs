@@ -19,9 +19,9 @@ struct Person;
 struct Name(String);
 
 fn add_people(mut commands: Commands) {
-    commands.spawn().insert(Person).insert(Name("Sam Smith".to_string()));
-    commands.spawn().insert(Person).insert(Name("Jon Jones".to_string()));
-    commands.spawn().insert(Person).insert(Name("Bob Brown".to_string()));
+    for name in ["Sam Smith", "Jon Jones", "Bob Brown"] {
+        commands.spawn().insert(Person).insert(Name(name.to_string()));
+    }
 }
 
 fn greet_people(query: Query<&Name, With<Person>>) {
