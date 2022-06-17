@@ -33,7 +33,6 @@
         let pkgs = import nixpkgs {
               inherit system;
 
-
               overlays = [
                 # ===== Specification of the rust toolchain to be used ====================
                 rust-overlay.overlay (final: prev:
@@ -72,6 +71,16 @@
               ];
             };
 
+            libPath = pkgs.lib.makeLibraryPath [
+              pkgs.libGL
+              pkgs.libxkbcommon
+              pkgs.wayland
+              pkgs.xorg.libX11
+              pkgs.xorg.libXcursor
+              pkgs.xorg.libXi
+              pkgs.xorg.libXrandr
+            ];
+
         in
           {
             devShell = pkgs.mkShell {
@@ -84,6 +93,7 @@
                 pkgs.udev
                 pkgs.alsa-lib
                 pkgs.pkgconfig
+                pkgs.xorg.libxcb
               ];
               packages = [
                 pkgs.lolcat
@@ -97,6 +107,7 @@
                   alias baz='cowsay What is the difference between buildIntputs and packages? | lolcat'
                 '';
               RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
+              LD_LIBRARY_PATH = libPath;
             };
           }
       );
