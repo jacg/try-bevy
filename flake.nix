@@ -81,7 +81,9 @@
                 pkgs.rust-analyzer-preview
                 pkgs.cargo-nextest
                 pkgs.just
-                pkgs.cowsay
+                pkgs.udev
+                pkgs.alsa-lib
+                pkgs.pkgconfig
               ];
               packages = [
                 pkgs.lolcat
