@@ -226,7 +226,7 @@ struct BallCollider(f32);
 
 fn asteroid_bullet_collision(
     mut commands: Commands,
-    bullets: Query<(Entity, &Transform, &BallCollider), With<Bullet>>,
+    bullets  : Query<(Entity, &Transform, &BallCollider), With<Bullet>>,
     asteroids: Query<(Entity, &Transform, &BallCollider), With<Asteroid>>,
 ) {
     for (bullet_entity, bullet_transform, bullet_collider) in &mut bullets.iter() {
