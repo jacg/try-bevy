@@ -2,7 +2,7 @@
 # `nix-shell` is provided by a wrapper in `shell.nix`.
 
 {
-  description = "Rust development environment";
+  description = "Bevy development environment";
 
   inputs = {
 
@@ -11,7 +11,7 @@
     #
     #    nix flake lock --update-input nixpkgs
 
-    nixpkgs     .url = "github:nixos/nixpkgs/nixos-22.05";
+    nixpkgs     .url = "github:nixos/nixpkgs/nixos-23.11";
     rust-overlay.url = "github:oxalica/rust-overlay";
     flake-utils .url = "github:numtide/flake-utils";
     flake-compat = {
@@ -35,7 +35,7 @@
 
               overlays = [
                 # ===== Specification of the rust toolchain to be used ====================
-                rust-overlay.overlay (final: prev:
+                rust-overlay.overlays.default (final: prev:
                   let
                     # If you have a rust-toolchain file for rustup, set `choice =
                     # rust-tcfile` further down to get the customized toolchain
@@ -43,8 +43,8 @@
                     rust-tcfile  = final.rust-bin.fromRustupToolchainFile ./rust-toolchain;
                     rust-latest  = final.rust-bin.stable .latest      ;
                     rust-beta    = final.rust-bin.beta   .latest      ;
-                    rust-nightly = final.rust-bin.nightly."2022-06-14";
-                    rust-stable  = final.rust-bin.stable ."1.61.0"    ; # nix flake lock --update-input rust-overlay
+                    rust-nightly = final.rust-bin.nightly."2024-03-03";
+                    rust-stable  = final.rust-bin.stable ."1.76.0"    ; # nix flake lock --update-input rust-overlay
                     rust-analyzer-preview-on = date:
                       final.rust-bin.nightly.${date}.default.override {
                         extensions = [ "rust-analyzer-preview" ];
@@ -61,53 +61,56 @@
                         # extensions = [];
                         # targets = [ "wasm32-unknown-unknown" ];
                       };
-                      rust-analyzer-preview = rust-analyzer-preview-on "2022-06-14";
+                      rust-analyzer-preview = rust-analyzer-preview-on "2024-03-03";
                       rust-src = rust-stable.rust-src;
                     })
-                # ==== Cargo nextest ========================================================
-                (final: prev: {
-                  cargo-nextest = final.callPackage ./overlays/cargo-nextest.nix {};
-                })
               ];
             };
 
-            libPath = pkgs.lib.makeLibraryPath [
-              pkgs.libGL
-              pkgs.libxkbcommon
-              pkgs.wayland
-              pkgs.xorg.libX11
-              pkgs.xorg.libXcursor
-              pkgs.xorg.libXi
-              pkgs.xorg.libXrandr
-            ];
-
         in
           {
-            devShell = pkgs.mkShell {
-              name = "my-rust-project";
+            devShell = pkgs.mkShell rec {
+              name = "bevy-workshop-devshell";
+
+              nativeBuildInputs = [ pkgs.pkg-config ];
+
               buildInputs = [
                 pkgs.rust-tools
                 pkgs.rust-analyzer-preview
                 pkgs.cargo-nextest
                 pkgs.just
+
                 pkgs.udev
                 pkgs.alsa-lib
-                pkgs.pkgconfig
-                pkgs.xorg.libxcb
+                pkgs.vulkan-loader
+
+                # To use the x11 feature
+                pkgs.xorg.libX11
+                pkgs.xorg.libXcursor
+                pkgs.xorg.libXi
+                pkgs.xorg.libXrandr
+
+                # To use the wayland feature
+                pkgs.libxkbcommon
+                pkgs.wayland
+
+                # pkgs.libGL
+                # pkgs.xorg.libxcb
+
               ];
-              packages = [
-                pkgs.lolcat
-                pkgs.exa
-              ];
+
+              packages = with pkgs; [ lolcat eza ];
+
               shellHook =
                 ''
-                  export PS1="rust devshell> "
+                  export PS1="bevy devshell> "
                   alias foo='cowsay Foo'
-                  alias bar='exa -l | lolcat'
-                  alias baz='cowsay What is the difference between buildIntputs and packages? | lolcat'
+                  alias bar='eza -l | lolcat'
+                  alias baz='cowsay What is the difference between buildInputs and packages? | lolcat'
                 '';
+
               RUST_SRC_PATH = "${pkgs.rust-src}/lib/rustlib/src/rust/library";
-              LD_LIBRARY_PATH = libPath;
+              LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
             };
           }
       );

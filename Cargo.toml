@@ -1,9 +1,18 @@
 [package]
-name = "platformer"
+name = "bevy-trial"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.7"
+bevy = "0.13.1"
+
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (including Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3

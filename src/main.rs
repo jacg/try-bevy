@@ -2,31 +2,12 @@ use bevy::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_startup_system(add_people)
-        .add_system(hello_world)
-        .add_system(greet_people)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .insert_resource(ClearColor(Color::rgb(0.3, 0.0, 0.0)))
+        .add_systems(Startup, setup)
         .run();
 }
 
-fn hello_world() {
-    println!("Howdy!");
-}
-
-#[derive(Component)]
-struct Person;
-
-#[derive(Component)]
-struct Name(String);
-
-fn add_people(mut commands: Commands) {
-    for name in ["Sam Smith", "Jon Jones", "Bob Brown"] {
-        commands.spawn().insert(Person).insert(Name(name.to_string()));
-    }
-}
-
-fn greet_people(query: Query<&Name, With<Person>>) {
-    for name in query.iter() {
-        println!("hello {}", name.0);
-    }
+fn setup(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
 }
