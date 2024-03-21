@@ -44,25 +44,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .with_scale(Vec3::splat(2.)),
             ..default()
         },
-        SpriteMovement {
-            direction: Vec3::splat(0.0),
-            speed: 100.0,
-        },
+        SpriteMovement { vx: 0.0, vy: 0.0 },
         CooldownTimer(Timer::from_seconds(0.2, TimerMode::Once)),
         BallCollider(18.0),
     ));
 }
 
 #[derive(Component)]
-struct SpriteMovement {
-    direction: Vec3,
-    speed: f32,
-}
+struct SpriteMovement { vx: f32, vy: f32 }
 
 fn sprite_movement(time: Res<Time>, mut sprite_position: Query<(&SpriteMovement, &mut Transform)>) {
-    for (movement, mut transform) in &mut sprite_position {
-        transform.translation +=
-            movement.direction.clone().normalize_or_zero() * movement.speed * time.delta_seconds();
+    for (&SpriteMovement { vx, vy }, mut transform) in &mut sprite_position {
+        let dt = time.delta_seconds();
+        transform.translation += Vec3 { x: vx, y: vy, z: 0.0} * dt;
     }
 }
 
@@ -72,30 +66,20 @@ fn ship_movement_input(
 ) {
     let mut sprite_movement = player.single_mut();
 
-
     macro_rules! kbd {
         ($direction:ident $sign:literal $k1:ident $k2:ident) => {
-
-            if keyboard_input.just_pressed(KeyCode::$k1) ||
-               keyboard_input.just_pressed(KeyCode::$k2) {
-                sprite_movement.direction.$direction = $sign * 1.0;
-            } else
-                if keyboard_input.just_released(KeyCode::$k1)
-                || keyboard_input.just_released(KeyCode::$k2)
-                && sprite_movement.direction.$direction * $sign > 0.0
-            {
-                sprite_movement.direction.$direction = 0.0;
+            if keyboard_input.pressed(KeyCode::$k1) ||
+               keyboard_input.pressed(KeyCode::$k2) {
+                sprite_movement.$direction += $sign * 1.0;
             }
-
         };
     }
 
-    kbd!(x -1.0 Comma  Left);
-    kbd!(x  1.0 P      Right);
-    kbd!(y  1.0 Key3   Up);
-    kbd!(y -1.0 Period Down);
-
-    }
+    kbd!(vx -1.0 Comma  Left);
+    kbd!(vx  1.0 P      Right);
+    kbd!(vy  1.0 Key3   Up);
+    kbd!(vy -1.0 Period Down);
+}
 
 fn confine_player_to_screen(
     mut player: Query<(&mut Transform, &mut SpriteMovement), With<Player>>,
@@ -107,19 +91,19 @@ fn confine_player_to_screen(
 
     let (mut transform, mut movement) = player.single_mut();
 
-    if transform.translation.x < -half_width && movement.direction.x < 0.0 {
-        movement.direction.x = 0.0;
+    if transform.translation.x < -half_width && movement.vx < 0.0 {
+        movement.vx = 0.0;
         transform.translation.x = -half_width;
-    } else if transform.translation.x > half_width && movement.direction.x > 0.0 {
-        movement.direction.x = 0.0;
+    } else if transform.translation.x > half_width && movement.vx > 0.0 {
+        movement.vx = 0.0;
         transform.translation.x = half_width;
     }
 
-    if transform.translation.y < -half_height && movement.direction.y < 0.0 {
-        movement.direction.y = 0.0;
+    if transform.translation.y < -half_height && movement.vy < 0.0 {
+        movement.vy = 0.0;
         transform.translation.y = -half_height;
-    } else if transform.translation.y > half_height && movement.direction.y > 0.0 {
-        movement.direction.y = 0.0;
+    } else if transform.translation.y > half_height && movement.vy > 0.0 {
+        movement.vy = 0.0;
         transform.translation.y = half_height;
     }
 }
@@ -149,10 +133,7 @@ fn bullet_firing(
                 transform: Transform::from_translation(position),
                 ..default()
             },
-            SpriteMovement {
-                direction: Vec3::Y,
-                speed: 200.0,
-            },
+            SpriteMovement { vx: 0.0, vy: 200.0 },
             BallCollider(2.0),
         ));
         timer.reset();
@@ -194,10 +175,7 @@ fn spawn_asteroids(
                 .with_scale(Vec3::splat(2.0)),
                 ..default()
             },
-            SpriteMovement {
-                direction: Vec3::new(0.0, -1.0, 0.0),
-                speed: 30.0,
-            },
+            SpriteMovement { vx: 0.0, vy: -30.0 },
             BallCollider(24.0),
         ));
         timer.set_duration(Duration::from_millis(rng.gen_range(500..3000)));
