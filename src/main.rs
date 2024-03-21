@@ -1,5 +1,10 @@
 use bevy::prelude::*;
 
+#[derive(Component)]
+struct Player;
+
+
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
@@ -8,6 +13,15 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
+    commands.spawn((
+        Player,
+        SpriteBundle {
+            texture: asset_server.load("spaceship.png"),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 0.0))
+                .with_scale(Vec3::splat(2.0)),
+            ..default()
+        }
+    ));
 }
