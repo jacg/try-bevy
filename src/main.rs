@@ -72,42 +72,30 @@ fn ship_movement_input(
 ) {
     let mut sprite_movement = player.single_mut();
 
-    if keyboard_input.just_pressed(KeyCode::A) || keyboard_input.just_pressed(KeyCode::Left) {
-        sprite_movement.direction.x = -1.0;
-    } else if (keyboard_input.just_released(KeyCode::A)
-        || keyboard_input.just_released(KeyCode::Left))
-        && sprite_movement.direction.x < 0.0
-    {
-        sprite_movement.direction.x = 0.0;
+
+    macro_rules! kbd {
+        ($direction:ident $sign:literal $k1:ident $k2:ident) => {
+
+            if keyboard_input.just_pressed(KeyCode::$k1) ||
+               keyboard_input.just_pressed(KeyCode::$k2) {
+                sprite_movement.direction.$direction = $sign * 1.0;
+            } else
+                if keyboard_input.just_released(KeyCode::$k1)
+                || keyboard_input.just_released(KeyCode::$k2)
+                && sprite_movement.direction.$direction * $sign > 0.0
+            {
+                sprite_movement.direction.$direction = 0.0;
+            }
+
+        };
     }
 
-    if keyboard_input.just_pressed(KeyCode::D) || keyboard_input.just_pressed(KeyCode::Right) {
-        sprite_movement.direction.x = 1.0;
-    } else if (keyboard_input.just_released(KeyCode::D)
-        || keyboard_input.just_released(KeyCode::Right))
-        && sprite_movement.direction.x > 0.0
-    {
-        sprite_movement.direction.x = 0.0;
-    }
+    kbd!(x -1.0 Comma  Left);
+    kbd!(x  1.0 P      Right);
+    kbd!(y  1.0 Key3   Up);
+    kbd!(y -1.0 Period Down);
 
-    if keyboard_input.just_pressed(KeyCode::W) || keyboard_input.just_pressed(KeyCode::Up) {
-        sprite_movement.direction.y = 1.0;
-    } else if (keyboard_input.just_released(KeyCode::W)
-        || keyboard_input.just_released(KeyCode::Up))
-        && sprite_movement.direction.y > 0.0
-    {
-        sprite_movement.direction.y = 0.0;
     }
-
-    if keyboard_input.just_pressed(KeyCode::S) || keyboard_input.just_pressed(KeyCode::Down) {
-        sprite_movement.direction.y = -1.0;
-    } else if (keyboard_input.just_released(KeyCode::S)
-        || keyboard_input.just_released(KeyCode::Down))
-        && sprite_movement.direction.y < 0.0
-    {
-        sprite_movement.direction.y = 0.0;
-    }
-}
 
 fn confine_player_to_screen(
     mut player: Query<(&mut Transform, &mut SpriteMovement), With<Player>>,
