@@ -91,21 +91,10 @@ fn confine_player_to_screen(
 
     let (mut transform, mut movement) = player.single_mut();
 
-    if transform.translation.x < -half_width && movement.vx < 0.0 {
-        movement.vx = 0.0;
-        transform.translation.x = -half_width;
-    } else if transform.translation.x > half_width && movement.vx > 0.0 {
-        movement.vx = 0.0;
-        transform.translation.x = half_width;
-    }
+    let t = &mut transform.translation;
+    if t.x.abs() > half_width  && t.x.signum() == movement.vx.signum() { movement.vx = 0.0; (*t).x = half_width  * t.x.signum(); }
+    if t.y.abs() > half_height && t.y.signum() == movement.vy.signum() { movement.vy = 0.0; (*t).y = half_height * t.y.signum(); }
 
-    if transform.translation.y < -half_height && movement.vy < 0.0 {
-        movement.vy = 0.0;
-        transform.translation.y = -half_height;
-    } else if transform.translation.y > half_height && movement.vy > 0.0 {
-        movement.vy = 0.0;
-        transform.translation.y = half_height;
-    }
 }
 
 #[derive(Component)]
